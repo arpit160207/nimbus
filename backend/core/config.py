@@ -19,7 +19,9 @@ class Settings(BaseSettings):
     AWS_BUCKET_NAME: str = "nimbus-vault-arpit-2026"
 
     # Database
-    DATABASE_URL: str = "mysql+pymysql://nimbus_user:nimbus_password@localhost:3306/nimbus"
+    # DATABASE_URL: str = "mysql+pymysql://nimbus_user:nimbus_password@localhost:3306/nimbus"
+    DATABASE_URL: str = "sqlite:///./nimbus.db"
+
 
     class Config:
         case_sensitive = True
