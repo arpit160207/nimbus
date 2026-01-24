@@ -13,10 +13,10 @@ class Settings(BaseSettings):
     STORAGE_DIR: str = os.path.join(os.path.dirname(BASE_DIR), "storage")
 
     # AWS Configuration
-    AWS_ACCESS_KEY_ID: str = "AKIA243O5OTZPOOVUM75"
-    AWS_SECRET_ACCESS_KEY: str = "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"
-    AWS_REGION: str = "ap-south-1"
-    AWS_BUCKET_NAME: str = "nimbus-vault-arpit-2026"
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID", "")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY", "")
+    AWS_REGION: str = os.getenv("AWS_REGION", "ap-south-1")
+    AWS_BUCKET_NAME: str = os.getenv("AWS_BUCKET_NAME", "nimbus-vault")
 
     # Database
     # DATABASE_URL: str = "mysql+pymysql://nimbus_user:nimbus_password@localhost:3306/nimbus"

@@ -13,9 +13,10 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - DATABASE_URL=mysql+pymysql://nimbus_user:nimbus_password@db/nimbus
-    depends_on:
-      - db
+      - DATABASE_URL=sqlite:///./nimbus.db
+    volumes:
+      - nimbus_sqlite_data:/app/nimbus.db
+      - nimbus_storage:/app/storage
     restart: always
 
   frontend:
@@ -29,19 +30,6 @@ services:
       - backend
     restart: always
 
-  db:
-    platform: linux/amd64
-    image: mysql:8.0
-    restart: always
-    environment:
-      MYSQL_DATABASE: nimbus
-      MYSQL_USER: nimbus_user
-      MYSQL_PASSWORD: nimbus_password
-      MYSQL_ROOT_PASSWORD: root_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
 volumes:
-  mysql_data:
+  nimbus_sqlite_data:
+  nimbus_storage:
