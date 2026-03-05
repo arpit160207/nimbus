@@ -2,27 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #0f172a;
-  /* slate-900 */
-  color: #f8fafc;
-  /* slate-50 */
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 transition-colors duration-300 antialiased;
+  }
+
+  /* Dark mode global overrides */
+  html.dark body {
+    @apply bg-slate-900 text-slate-50;
+  }
 }
 
-/* Custom Scrollbar for "Dark Cloud" feel */
+/* Custom Scrollbar - Adaptive */
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1e293b;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
+  @apply bg-slate-300 rounded-full dark:bg-slate-700;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  @apply bg-slate-400 dark:bg-slate-600;
 }
