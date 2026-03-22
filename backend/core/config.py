@@ -18,11 +18,20 @@ class Settings(BaseSettings):
     AWS_REGION: str = os.getenv("AWS_REGION", "ap-south-1")
     AWS_BUCKET_NAME: str = os.getenv("AWS_BUCKET_NAME", "nimbus-vault")
 
-    # Database
-    # DATABASE_URL: str = "mysql+pymysql://nimbus_user:nimbus_password@localhost:3306/nimbus"
-    DATABASE_URL: str = "sqlite:///./nimbus.db"
+    # Database (RDS Configuration)
+    RDS_ENGINE: str = os.getenv("RDS_ENGINE", "mysql")
+    RDS_HOST: str = os.getenv("RDS_HOST", "")
+    RDS_PORT: str = os.getenv("RDS_PORT", "3306")
+    RDS_USER: str = os.getenv("RDS_USER", "")
+    RDS_PASSWORD: str = os.getenv("RDS_PASSWORD", "")
+    RDS_DB_NAME: str = os.getenv("RDS_DB_NAME", "nimbus")
 
-
+    @property
+    def DATABASE_URL(self) -> str:
+        if self.RDS_HOST and self.RDS_USER:
+            driver = "postgresql+psycopg2" if self.RDS_ENGINE.lower() == "postgresql" else "mysql+pymysql"
+            return f"{driver}://{self.RDS_USER}:{self.RDS_PASSWORD}@{self.RDS_HOST}:{self.RDS_PORT}/{self.RDS_DB_NAME}"
+        return os.getenv("DATABASE_URL", "sqlite:///./nimbus.db")
     class Config:
         case_sensitive = True
         env_file = ".env"
