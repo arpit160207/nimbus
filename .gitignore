@@ -43,3 +43,6 @@ dist/
 # Nimbus Specific
 storage/
 logs/
+
+# SSL Certificates
+global-bundle.pem

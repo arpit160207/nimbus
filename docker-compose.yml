@@ -8,14 +8,9 @@ services:
       dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
-    environment:
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
-      - DATABASE_URL=sqlite:///./nimbus.db
+    env_file:
+      - .env
     volumes:
-      - nimbus_sqlite_data:/app/nimbus.db
       - nimbus_storage:/app/storage
     restart: always
 
@@ -31,5 +26,4 @@ services:
     restart: always
 
 volumes:
-  nimbus_sqlite_data:
   nimbus_storage:

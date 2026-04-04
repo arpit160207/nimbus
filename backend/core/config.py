@@ -29,8 +29,12 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         if self.RDS_HOST and self.RDS_USER:
-            driver = "postgresql+psycopg2" if self.RDS_ENGINE.lower() == "postgresql" else "mysql+pymysql"
-            return f"{driver}://{self.RDS_USER}:{self.RDS_PASSWORD}@{self.RDS_HOST}:{self.RDS_PORT}/{self.RDS_DB_NAME}"
+            if self.RDS_ENGINE.lower() == "postgresql":
+                driver = "postgresql+psycopg2"
+                return f"{driver}://{self.RDS_USER}:{self.RDS_PASSWORD}@{self.RDS_HOST}:{self.RDS_PORT}/{self.RDS_DB_NAME}?sslmode=verify-full&sslrootcert=global-bundle.pem"
+            else:
+                driver = "mysql+pymysql"
+                return f"{driver}://{self.RDS_USER}:{self.RDS_PASSWORD}@{self.RDS_HOST}:{self.RDS_PORT}/{self.RDS_DB_NAME}"
         return os.getenv("DATABASE_URL", "sqlite:///./nimbus.db")
     class Config:
         case_sensitive = True
