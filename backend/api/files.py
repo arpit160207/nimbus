@@ -4,6 +4,7 @@ from backend.core.utils import get_category_for_file
 from backend.core.s3 import s3_service
 from backend.api import deps
 from pydantic import BaseModel
+from backend.models.user import User
 
 router = APIRouter()
 
@@ -14,9 +15,10 @@ class FileInfo(BaseModel):
     path: str 
 
 @router.post("/upload", response_model=FileInfo)
-async def upload_file(file: UploadFile = File(...), current_user: str = Depends(deps.get_current_user)): 
+async def upload_file(file: UploadFile = File(...), current_user: User = Depends(deps.get_current_user)): 
     category = get_category_for_file(file.filename)
-    object_name = f"{category}/{file.filename}"
+    user_prefix = current_user.full_name.replace(" ", "_").lower() if current_user.full_name else f"user_{current_user.id}"
+    object_name = f"{user_prefix}/{category}/{file.filename}"
     
     # Upload to S3
     s3_service.upload_file(file, object_name)
@@ -29,40 +31,31 @@ async def upload_file(file: UploadFile = File(...), current_user: str = Depends(
     )
 
 @router.get("/list", response_model=List[dict])
-def list_files():
+def list_files(current_user: User = Depends(deps.get_current_user)):
     all_files = []
+    user_prefix = current_user.full_name.replace(" ", "_").lower() if current_user.full_name else f"user_{current_user.id}"
     # List from each category prefix
     for category in ["photos", "documents", "others"]:
-        s3_files = s3_service.list_files(prefix=f"{category}/")
+        s3_files = s3_service.list_files(prefix=f"{user_prefix}/{category}/")
         for f in s3_files:
             # Generate a presigned URL valid for 1 hour for preview/download
             url = s3_service.generate_presigned_url(f['key'], expiration=3600)
+            download_url = s3_service.generate_presigned_url(f['key'], expiration=3600, force_download=True, filename=f['name'])
             
             all_files.append({
                 "name": f['name'],
                 "category": category,
                 "size": f['size'],
                 "url": url, # New field for preview/direct access
+                "download_url": download_url,
                 "key": f['key']
             })
     return all_files
 
 @router.delete("/delete/{filename}")
-def delete_file(filename: str, current_user: str = Depends(deps.get_current_user)):
+def delete_file(filename: str, current_user: User = Depends(deps.get_current_user)):
     category = get_category_for_file(filename)
-    object_name = f"{category}/{filename}"
+    user_prefix = current_user.full_name.replace(" ", "_").lower() if current_user.full_name else f"user_{current_user.id}"
+    object_name = f"{user_prefix}/{category}/{filename}"
     s3_service.delete_file(object_name)
     return {"status": "deleted"}
-
-@router.get("/download/{filename}")
-def download_file(filename: str):
-    # Now we can just redirect to the pre-generated URL if we want, or generate a fresh one
-    category = get_category_for_file(filename)
-    object_name = f"{category}/{filename}"
-    
-    url = s3_service.generate_presigned_url(object_name)
-    if not url:
-        raise HTTPException(status_code=404, detail="File not found")
-        
-    from starlette.responses import RedirectResponse
-    return RedirectResponse(url)

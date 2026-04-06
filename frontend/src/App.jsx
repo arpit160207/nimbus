@@ -6,7 +6,7 @@ import Login from './components/Login'
 import { API_BASE_URL } from './config'
 import { Toaster, toast } from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, FolderOpen } from 'lucide-react'
+import { Search, FolderOpen, Menu } from 'lucide-react'
 import './index.css'
 
 function App() {
@@ -17,6 +17,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('')
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Theme State
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light')
@@ -144,10 +145,10 @@ function App() {
   }
 
   const handleDownload = (file) => {
-    if (file.url) {
-      window.open(file.url, '_blank')
-    } else {
-      window.location.href = `${API_BASE_URL}/files/download/${file.name}`
+    if (file.download_url) {
+      window.location.href = file.download_url;
+    } else if (file.url) {
+      window.open(file.url, '_blank');
     }
   }
 
@@ -203,7 +204,7 @@ function App() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="flex min-h-screen font-sans bg-slate-50 dark:bg-slate-900 transition-colors duration-300 selection:bg-brand-500/30 w-full"
+      className="flex min-h-screen font-sans bg-slate-50 dark:bg-slate-900 transition-colors duration-300 selection:bg-brand-500/30 w-full overflow-hidden"
     >
       <Toaster position="bottom-right" toastOptions={toastOptions} />
 
@@ -213,28 +214,40 @@ function App() {
         totalSize={totalSize}
         theme={theme}
         setTheme={setTheme}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
       />
 
       <motion.main
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ type: "spring", stiffness: 250, damping: 22 }}
-        className="flex-1 p-8 lg:p-12 z-10 overflow-y-auto flex flex-col h-screen relative"
+        className="flex-1 p-4 sm:p-6 lg:p-12 z-10 overflow-y-auto flex flex-col h-screen relative w-full"
       >
         {/* Soft Radial Background Accent */}
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-[100px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
 
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 shrink-0 relative z-20">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <motion.h2
-              key={activeCategory}
-              initial={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              transition={{ duration: 0.3, type: "spring" }}
-              className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight capitalize min-w-[150px]"
-            >
-              {activeCategory === 'all' ? 'All Files' : activeCategory}
-            </motion.h2>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 shrink-0 relative z-20">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 w-full md:w-auto">
+            <div className="flex items-center justify-between w-full md:w-auto">
+              <motion.h2
+                key={activeCategory}
+                initial={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.3, type: "spring" }}
+                className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight capitalize min-w-[150px]"
+              >
+                {activeCategory === 'all' ? 'All Files' : activeCategory}
+              </motion.h2>
+              
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="md:hidden p-2 -mr-2 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                aria-label="Open Menu"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
 
             <div className="relative group w-full md:w-auto">
               <input

@@ -4,13 +4,17 @@ from backend.core.config import settings
 from fastapi import UploadFile, HTTPException
 import mimetypes
 
+from botocore.config import Config
+
 class S3Service:
     def __init__(self):
         self.s3_client = boto3.client(
             's3',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_REGION
+            region_name=settings.AWS_REGION,
+            endpoint_url=f"https://s3.{settings.AWS_REGION}.amazonaws.com",
+            config=Config(signature_version='s3v4')
         )
         self.bucket = settings.AWS_BUCKET_NAME
 
@@ -38,11 +42,15 @@ class S3Service:
             print(f"S3 Delete Error: {e}")
             raise HTTPException(status_code=500, detail="Failed to delete file from S3")
 
-    def generate_presigned_url(self, object_name: str, expiration=3600):
+    def generate_presigned_url(self, object_name: str, expiration=3600, force_download=False, filename=None):
         try:
+            params = {'Bucket': self.bucket, 'Key': object_name}
+            if force_download:
+                fname = filename if filename else object_name.split("/")[-1]
+                params['ResponseContentDisposition'] = f'attachment; filename="{fname}"'
             response = self.s3_client.generate_presigned_url(
                 'get_object',
-                Params={'Bucket': self.bucket, 'Key': object_name},
+                Params=params,
                 ExpiresIn=expiration
             )
             return response

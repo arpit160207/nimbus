@@ -12,10 +12,39 @@ const Login = ({ onLogin }) => {
     const [successMsg, setSuccessMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    };
+
+    const validatePassword = (pwd) => {
+        const rules = [
+            { check: pwd.length >= 8 && pwd.length <= 16, msg: "Password must be 8 to 16 characters long." },
+            { check: /[A-Z]/.test(pwd), msg: "Password must include at least one capital letter." },
+            { check: /[0-9]/.test(pwd), msg: "Password must include at least one number." },
+            { check: /[^A-Za-z0-9]/.test(pwd), msg: "Password must include at least one special character (shape)." },
+        ];
+        return rules.filter(r => !r.check).map(r => r.msg);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccessMsg('');
+
+        if (!validateEmail(username)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        if (isSignup) {
+            const pwdErrors = validatePassword(password);
+            if (pwdErrors.length > 0) {
+                setError(pwdErrors[0]); // Show first matching error
+                return;
+            }
+        }
+
         setIsLoading(true);
 
         try {
@@ -181,6 +210,35 @@ const Login = ({ onLogin }) => {
                                     required
                                 />
                             </div>
+                            <AnimatePresence>
+                                {isSignup && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                        animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Password Requirements:</p>
+                                        <ul className="text-xs space-y-1.5">
+                                            {[
+                                                { label: "8-16 characters", met: password.length >= 8 && password.length <= 16 },
+                                                { label: "One capital letter", met: /[A-Z]/.test(password) },
+                                                { label: "One number", met: /[0-9]/.test(password) },
+                                                { label: "One special character", met: /[^A-Za-z0-9]/.test(password) }
+                                            ].map((criterion, idx) => (
+                                                <li key={idx} className={`flex items-center gap-1.5 transition-colors duration-200 ${criterion.met ? 'text-green-600 dark:text-green-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                    {criterion.met ? (
+                                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                                    ) : (
+                                                        <div className="w-3.5 h-3.5 border-2 border-slate-400 dark:border-slate-500 rounded-full" />
+                                                    )}
+                                                    {criterion.label}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         <motion.button
