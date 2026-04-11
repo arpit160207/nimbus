@@ -15,9 +15,9 @@ async def startup_event():
         from backend.core.s3 import s3_service
         print("Testing S3 Connection...")
         s3_service.s3_client.list_buckets()
-        print("✅ S3 Connection Successful!")
+        print("[SUCCESS] S3 Connection Successful!")
     except Exception as e:
-        print(f"❌ S3 Connection FAILED: {e}")
+        print(f"[ERROR] S3 Connection FAILED: {e}")
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
